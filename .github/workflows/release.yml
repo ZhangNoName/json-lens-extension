@@ -1,0 +1,84 @@
+name: Release Extension
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Package and release
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build release package and changelog
+        id: package
+        shell: pwsh
+        run: |
+          $version = "v0.1.$env:GITHUB_RUN_NUMBER"
+          $tag = "release-$version"
+          $packageRoot = "dist/json-lens-extension"
+          $zipPath = "dist/json-lens-extension-$version.zip"
+          $changelogPath = "dist/CHANGELOG-$version.md"
+
+          New-Item -ItemType Directory -Force -Path $packageRoot | Out-Null
+          Copy-Item -Path manifest.json, background.js, app.html, README.md -Destination $packageRoot
+          Copy-Item -Path scripts, styles -Destination $packageRoot -Recurse
+
+          Compress-Archive -Path "$packageRoot/*" -DestinationPath $zipPath -Force
+
+          $previousTag = git describe --tags --abbrev=0 HEAD^ 2>$null
+          if ($LASTEXITCODE -eq 0 -and $previousTag) {
+            $logRange = "$previousTag..HEAD"
+          } else {
+            $logRange = "HEAD"
+          }
+
+          $changes = git log $logRange --pretty=format:"- %s (%h)"
+          if (-not $changes) {
+            $changes = "- Initial release package"
+          }
+
+          @(
+            "# JSON Lens Extension $version"
+            ""
+            "## Release Package"
+            ""
+            "- Artifact: json-lens-extension-$version.zip"
+            "- Trigger: $env:GITHUB_SHA"
+            ""
+            "## Changelog"
+            ""
+            $changes
+          ) | Set-Content -Path $changelogPath -Encoding UTF8
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "zipPath=$zipPath" >> $env:GITHUB_OUTPUT
+          "changelogPath=$changelogPath" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.package.outputs.tag }}" `
+            "${{ steps.package.outputs.zipPath }}" `
+            --title "JSON Lens Extension ${{ steps.package.outputs.version }}" `
+            --notes-file "${{ steps.package.outputs.changelogPath }}"

@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "JSON Lens",
+  "description": "Validate, format, fold, copy, and download JSON from text, clipboard, or local files.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Open JSON Lens"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["clipboardRead"]
+}

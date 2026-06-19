@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JSON Lens</title>
+    <link rel="stylesheet" href="styles/app.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">JL</div>
+        <div>
+          <h1>JSON Lens</h1>
+          <p id="statusText">Ready for JSON input</p>
+        </div>
+      </div>
+      <div class="toolbar" aria-label="JSON actions">
+        <label class="language-field" for="languageSelect">
+          <span id="languageLabel">Language</span>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </label>
+        <button id="readClipboardButton" type="button">Read Clipboard</button>
+        <button id="chooseFileButton" type="button">Open File</button>
+        <button id="formatButton" type="button" class="primary">Format</button>
+        <button id="copyAllButton" type="button" disabled>Copy All</button>
+        <button id="downloadButton" type="button" disabled>Download</button>
+        <button id="clearButton" type="button">Clear</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="pane source-pane" aria-labelledby="sourceTitle">
+        <div class="pane-head">
+          <div>
+            <h2 id="sourceTitle">Source</h2>
+            <p id="fileMeta">Paste JSON, read the clipboard, or choose a local file.</p>
+          </div>
+        </div>
+        <div class="source-editor">
+          <pre id="sourceLineNumbers" class="line-gutter" aria-hidden="true">1</pre>
+          <textarea id="sourceInput" spellcheck="false" placeholder='{"hello":"world"}'></textarea>
+        </div>
+        <input id="fileInput" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+        <div id="errorPanel" class="error-panel" hidden>
+          <strong id="errorTitle">Invalid JSON</strong>
+          <p id="errorMessage"></p>
+          <pre id="errorExcerpt"></pre>
+        </div>
+      </section>
+
+      <section class="pane result-pane" aria-labelledby="resultTitle">
+        <div class="pane-head result-head">
+          <div>
+            <h2 id="resultTitle">Formatted Tree</h2>
+            <p id="resultMeta">No formatted JSON yet.</p>
+          </div>
+          <div class="segmented-actions">
+            <button id="collapseAllButton" type="button" disabled>Collapse All</button>
+            <button id="expandAllButton" type="button" disabled>Expand All</button>
+          </div>
+        </div>
+        <div id="treeView" class="tree-view" aria-live="polite">
+          <div class="empty-state">Formatted JSON will appear here.</div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="scripts/app.js"></script>
+  </body>
+</html>
