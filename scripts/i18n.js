@@ -61,6 +61,10 @@ const MESSAGES = {
     collapseNode: "Collapse node",
     copyNode: "Copy this node",
     closeDocument: "Close document",
+    renameDocument: "Rename document",
+    renameShort: "Rename",
+    saveRename: "Save name",
+    cancelRename: "Cancel rename",
     renamePrompt: "Document name",
     copy: "Copy",
     placeholder: "{\"hello\":\"world\"}"
@@ -125,6 +129,10 @@ const MESSAGES = {
     collapseNode: "折叠节点",
     copyNode: "复制此节点",
     closeDocument: "关闭文档",
+    renameDocument: "重命名文档",
+    renameShort: "命名",
+    saveRename: "保存名称",
+    cancelRename: "取消重命名",
     renamePrompt: "文档名称",
     copy: "复制",
     placeholder: "{\"hello\":\"world\"}"

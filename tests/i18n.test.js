@@ -33,3 +33,12 @@ test("getMessages returns a copy of localized messages", () => {
   messages.format = "mutated";
   assert.equal(getMessages("zh").format, "格式化");
 });
+
+test("translate includes the tab rename action label in both languages", () => {
+  assert.equal(translate("en", "renameDocument"), "Rename document");
+  assert.equal(translate("en", "saveRename"), "Save name");
+  assert.equal(translate("en", "cancelRename"), "Cancel rename");
+  assert.equal(translate("zh", "renameDocument"), "重命名文档");
+  assert.equal(translate("zh", "saveRename"), "保存名称");
+  assert.equal(translate("zh", "cancelRename"), "取消重命名");
+});

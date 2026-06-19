@@ -74,7 +74,8 @@ const state = {
   sourceVisible: localStorage.getItem("jsonLensSourceVisible") !== "false",
   syncScroll: localStorage.getItem("jsonLensSyncScroll") === "true",
   isSyncingScroll: false,
-  autoFormatTimer: null
+  autoFormatTimer: null,
+  renamingDocumentId: null
 };
 
 init();
@@ -106,11 +107,25 @@ function bindEvents() {
     const tab = event.target.closest("[data-document-id]");
     if (!tab) return;
 
+    if (event.target.closest(".document-tab-input")) return;
+
     const action = event.target.closest("[data-action]")?.dataset.action;
     const documentId = tab.dataset.documentId;
 
     if (action === "close") {
       state.workspace = removeDocument(state.workspace, documentId);
+      if (!state.workspace.documents.some((item) => item.id === state.renamingDocumentId)) {
+        state.renamingDocumentId = null;
+      }
+    } else if (action === "rename") {
+      beginRenamingDocument(documentId);
+      return;
+    } else if (action === "rename-save") {
+      commitRenamedDocument(documentId);
+      return;
+    } else if (action === "rename-cancel") {
+      cancelRenamingDocument();
+      return;
     } else {
       state.workspace = selectDocument(state.workspace, documentId);
     }
@@ -120,17 +135,31 @@ function bindEvents() {
   });
 
   elements.documentTabs.addEventListener("dblclick", (event) => {
+    if (event.target.closest("[data-action]")) return;
+
     const tab = event.target.closest("[data-document-id]");
     if (!tab) return;
 
     const document = state.workspace.documents.find((item) => item.id === tab.dataset.documentId);
-    if (!document) return;
+    if (document) beginRenamingDocument(document.id);
+  });
 
-    const title = prompt(t("renamePrompt"), document.title);
-    if (title == null) return;
+  elements.documentTabs.addEventListener("keydown", (event) => {
+    const input = event.target.closest(".document-tab-input");
+    if (!input) return;
 
-    state.workspace = replaceDocument(state.workspace, updateDocumentTitle(document, title));
-    renderAll();
+    const tab = input.closest("[data-document-id]");
+    if (!tab) return;
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitRenamedDocument(tab.dataset.documentId);
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      cancelRenamingDocument();
+    }
   });
 
   elements.sourceInput.addEventListener("input", () => {
@@ -310,25 +339,91 @@ function renderTabs() {
   elements.documentTabs.replaceChildren();
 
   state.workspace.documents.forEach((jsonDocument) => {
-    const tab = window.document.createElement("button");
-    tab.type = "button";
+    const tab = window.document.createElement("div");
     tab.className = `document-tab${jsonDocument.id === state.workspace.activeId ? " active" : ""}${jsonDocument.isValid === false ? " invalid" : ""}`;
     tab.dataset.documentId = jsonDocument.id;
+    tab.role = "tab";
     tab.title = jsonDocument.title;
 
-    const label = window.document.createElement("span");
-    label.className = "document-tab-title";
-    label.textContent = jsonDocument.title;
+    if (jsonDocument.id === state.renamingDocumentId) {
+      const input = window.document.createElement("input");
+      input.className = "document-tab-input";
+      input.value = jsonDocument.title;
+      input.setAttribute("aria-label", t("renamePrompt"));
 
-    const close = window.document.createElement("span");
-    close.className = "document-tab-close";
-    close.dataset.action = "close";
-    close.title = t("closeDocument");
-    close.textContent = "x";
+      const save = window.document.createElement("button");
+      save.type = "button";
+      save.className = "document-tab-commit";
+      save.dataset.action = "rename-save";
+      save.title = t("saveRename");
+      save.textContent = "OK";
 
-    tab.append(label, close);
+      const cancel = window.document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "document-tab-close";
+      cancel.dataset.action = "rename-cancel";
+      cancel.title = t("cancelRename");
+      cancel.textContent = "x";
+
+      tab.append(input, save, cancel);
+    } else {
+      const label = window.document.createElement("button");
+      label.type = "button";
+      label.className = "document-tab-select document-tab-title";
+      label.textContent = jsonDocument.title;
+
+      const rename = window.document.createElement("button");
+      rename.type = "button";
+      rename.className = "document-tab-rename";
+      rename.dataset.action = "rename";
+      rename.title = t("renameDocument");
+      rename.textContent = t("renameShort");
+
+      const close = window.document.createElement("button");
+      close.type = "button";
+      close.className = "document-tab-close";
+      close.dataset.action = "close";
+      close.title = t("closeDocument");
+      close.textContent = "x";
+
+      tab.append(label, rename, close);
+    }
+
     elements.documentTabs.append(tab);
   });
+}
+
+function beginRenamingDocument(documentId) {
+  if (!state.workspace.documents.some((item) => item.id === documentId)) return;
+
+  state.renamingDocumentId = documentId;
+  renderTabs();
+  const input = getTabElement(documentId)?.querySelector(".document-tab-input");
+  input?.focus();
+  input?.select();
+}
+
+function commitRenamedDocument(documentId) {
+  const document = state.workspace.documents.find((item) => item.id === documentId);
+  if (!document) return;
+
+  const input = getTabElement(documentId)?.querySelector(".document-tab-input");
+  const title = input?.value ?? document.title;
+
+  state.workspace = replaceDocument(state.workspace, updateDocumentTitle(document, title));
+  state.renamingDocumentId = null;
+  localStorage.setItem("jsonLensActiveId", state.workspace.activeId);
+  renderAll();
+}
+
+function cancelRenamingDocument() {
+  state.renamingDocumentId = null;
+  renderTabs();
+}
+
+function getTabElement(documentId) {
+  return Array.from(elements.documentTabs.querySelectorAll("[data-document-id]"))
+    .find((tab) => tab.dataset.documentId === documentId);
 }
 
 function renderSource() {
@@ -404,10 +499,6 @@ function renderTree() {
     key.textContent = formatKey(row);
     key.title = key.textContent;
 
-    const type = window.document.createElement("div");
-    type.className = "type-pill";
-    type.textContent = row.type;
-
     const value = window.document.createElement("div");
     value.className = "value";
     value.textContent = row.summary;
@@ -421,7 +512,7 @@ function renderTree() {
     copy.textContent = t("copy");
     copy.title = t("copyNode");
 
-    rowElement.append(line, toggle, key, type, value, copy);
+    rowElement.append(line, toggle, key, value, copy);
     fragment.append(rowElement);
   });
 
