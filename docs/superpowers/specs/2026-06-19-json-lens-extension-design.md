@@ -28,6 +28,7 @@ Build a Chromium Manifest V3 extension named `json-lens-extension`. Clicking the
 - Allow copying a specific node or primitive value.
 - Allow downloading the formatted JSON as a `.json` file.
 - Support English and Simplified Chinese UI text with an in-page language switcher.
+- Check GitHub Releases when the tool opens and prompt before opening the update download page when a newer version exists.
 - Use an English project name and repository name.
 - Keep the project easy to load as an unpacked Chrome or Edge extension.
 - Add a GitHub Actions pipeline that runs when `main` changes, packages the extension as a release zip, creates a GitHub Release, and includes a generated changelog.
@@ -36,7 +37,7 @@ Build a Chromium Manifest V3 extension named `json-lens-extension`. Clicking the
 
 The extension uses a simple no-build architecture: `manifest.json`, a service worker, one app page, CSS, and browser ES modules. Core JSON behavior lives in `scripts/json-core.js` so it can be tested with Node and reused by the UI.
 
-The background service worker listens for action clicks and opens `app.html` in a new tab. The app page owns input, file loading, clipboard access, rendering, collapse state, copy actions, and download creation.
+The background service worker listens for action clicks and opens `app.html` in a new tab. The app page owns input, file loading, clipboard access, rendering, collapse state, copy actions, download creation, and GitHub Release update checks. The manifest grants `https://api.github.com/*` host access for the release check.
 
 ## UI
 
@@ -62,10 +63,11 @@ All primary labels and runtime messages should be available in English and Simpl
 6. When sync scroll is enabled, source/result scroll positions map by proportional scroll progress.
 7. Save writes the active document source metadata to IndexedDB.
 8. Copy/download actions use `stringifyNodeValue` or the full formatted output.
+9. On open, the app compares the installed manifest version with the latest GitHub Release tag and prompts before opening the release page if an update is available.
 
 ## Error Handling
 
-Invalid JSON does not replace the previous successful output. The UI keeps the source text visible, marks the source editor red, updates the header status, and shows an error panel. Clipboard, file, save, load, and cache-clear errors show short user-facing messages without exposing implementation details.
+Invalid JSON does not replace the previous successful output. The UI keeps the source text visible, marks the source editor red, updates the header status, and shows an error panel. Clipboard, file, save, load, and cache-clear errors show short user-facing messages without exposing implementation details. Update check failures stay silent so network or repository access problems do not block the formatter.
 
 ## Performance
 
@@ -73,4 +75,4 @@ The app performs JSON parsing and tree building after a 300 ms debounce instead 
 
 ## Testing
 
-Use Node's built-in test runner for core modules. Cover successful parse/format, invalid JSON line and column extraction, tree building, visible row generation with collapse state, node copy text, download filename generation, language message lookup, multi-document workspace behavior, source update behavior, result preservation after invalid edits, removal behavior, scroll-sync math, and serialization/hydration for IndexedDB records.
+Use Node's built-in test runner for core modules. Cover successful parse/format, invalid JSON line and column extraction, tree building, visible row generation with collapse state, node copy text, download filename generation, language message lookup, multi-document workspace behavior, source update behavior, result preservation after invalid edits, removal behavior, scroll-sync math, serialization/hydration for IndexedDB records, release tag parsing, and numeric version comparison.

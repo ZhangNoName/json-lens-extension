@@ -31,6 +31,7 @@ JSON Lens is a Chromium extension for validating, formatting, folding, copying, 
 - Clears all local JSON cache after an irreversible confirmation.
 - Copies the full formatted document or a specific node/value.
 - Downloads the formatted result as a `.json` file.
+- Checks GitHub Releases on open and prompts when a newer version is available.
 - Supports English and Simplified Chinese UI text.
 
 ## Install Locally
@@ -53,6 +54,10 @@ npm test
 ```
 
 The project intentionally uses plain Manifest V3 files and browser ES modules, so there is no build step.
+
+## Updates
+
+When JSON Lens opens, it checks the latest GitHub Release. If the release version is newer than the installed extension version, it asks whether to open the release download page. Locally loaded unpacked extensions cannot overwrite themselves automatically, so update by downloading the new zip, extracting it, and reloading the unpacked extension folder in `chrome://extensions` or `edge://extensions`.
 
 ## Performance Notes
 
@@ -88,6 +93,7 @@ JSON Lens 是一个 Chromium 浏览器扩展，用于校验、格式化、折叠
 - 支持确认后清空所有本地 JSON 缓存，操作不可恢复。
 - 支持复制全部 JSON 或复制某个节点/值。
 - 支持下载格式化后的 `.json` 文件。
+- 每次打开时检查 GitHub Release，有新版本时提示是否打开下载页。
 - 支持英文和简体中文界面切换。
 
 ## 本地安装
@@ -110,6 +116,10 @@ npm test
 ```
 
 项目使用原生 Manifest V3 文件和浏览器 ES modules，不需要构建步骤。
+
+## 更新
+
+JSON Lens 打开时会检查最新的 GitHub Release。如果发布版本高于当前安装版本，会询问是否打开发布下载页。本地“加载已解压”的扩展无法自动覆盖自身文件，所以更新方式是下载新的 zip、解压后，在 `chrome://extensions` 或 `edge://extensions` 中重新加载对应扩展文件夹。
 
 ## 性能说明
 

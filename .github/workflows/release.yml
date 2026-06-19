@@ -41,6 +41,11 @@ jobs:
           Copy-Item -Path manifest.json, background.js, app.html, README.md -Destination $packageRoot
           Copy-Item -Path scripts, styles -Destination $packageRoot -Recurse
 
+          $manifestPath = Join-Path $packageRoot "manifest.json"
+          $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+          $manifest.version = $version.TrimStart("v")
+          $manifest | ConvertTo-Json -Depth 20 | Set-Content -Path $manifestPath -Encoding UTF8
+
           Compress-Archive -Path "$packageRoot/*" -DestinationPath $zipPath -Force
 
           $previousTag = git describe --tags --abbrev=0 HEAD^ 2>$null

@@ -9,5 +9,6 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["clipboardRead"]
+  "permissions": ["clipboardRead"],
+  "host_permissions": ["https://api.github.com/*"]
 }

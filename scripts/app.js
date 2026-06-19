@@ -7,6 +7,11 @@ import {
 import { getInitialLanguage, translate } from "./i18n.js";
 import { computeSyncedScrollTop } from "./scroll-sync.js";
 import {
+  fetchLatestRelease,
+  getCurrentExtensionVersion,
+  isNewerVersion
+} from "./update-check.js";
+import {
   addDocument,
   createWorkspace,
   formatDocument,
@@ -85,6 +90,8 @@ async function init() {
   } catch {
     renderAll(t("loadFailed"));
   }
+
+  checkForUpdatesAfterOpen();
 }
 
 function bindEvents() {
@@ -274,6 +281,28 @@ function renderAll(statusMessage = null) {
     setStatus(statusMessage);
   } else {
     updateStatusForActiveDocument();
+  }
+}
+
+async function checkForUpdatesAfterOpen() {
+  try {
+    const latestRelease = await fetchLatestRelease();
+    const currentVersion = getCurrentExtensionVersion();
+
+    if (!isNewerVersion(currentVersion, latestRelease.version)) return;
+
+    setStatus(t("updateAvailable", { version: latestRelease.version }));
+    const shouldOpenRelease = window.confirm(t("updatePrompt", {
+      current: currentVersion,
+      latest: latestRelease.version
+    }));
+
+    if (shouldOpenRelease) {
+      window.open(latestRelease.url, "_blank", "noopener");
+      setStatus(t("updatePageOpened"));
+    }
+  } catch {
+    // Network failures and private repository access should not interrupt formatting.
   }
 }
 
