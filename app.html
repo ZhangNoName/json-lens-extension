@@ -23,24 +23,30 @@
             <option value="zh">中文</option>
           </select>
         </label>
+        <button id="newDocumentButton" type="button">New</button>
         <button id="readClipboardButton" type="button">Read Clipboard</button>
         <button id="chooseFileButton" type="button">Open File</button>
         <button id="formatButton" type="button" class="primary">Format</button>
+        <button id="saveButton" type="button">Save</button>
         <button id="copyAllButton" type="button" disabled>Copy All</button>
         <button id="downloadButton" type="button" disabled>Download</button>
+        <button id="toggleSourceButton" type="button">Hide Source</button>
         <button id="clearButton" type="button">Clear</button>
+        <button id="clearCacheButton" type="button">Clear Cache</button>
       </div>
     </header>
 
-    <main class="workspace">
-      <section class="pane source-pane" aria-labelledby="sourceTitle">
+    <nav id="documentTabs" class="document-tabs" aria-label="JSON documents"></nav>
+
+    <main id="workspace" class="workspace">
+      <section id="sourcePane" class="pane source-pane" aria-labelledby="sourceTitle">
         <div class="pane-head">
           <div>
             <h2 id="sourceTitle">Source</h2>
             <p id="fileMeta">Paste JSON, read the clipboard, or choose a local file.</p>
           </div>
         </div>
-        <div class="source-editor">
+        <div id="sourceEditor" class="source-editor">
           <pre id="sourceLineNumbers" class="line-gutter" aria-hidden="true">1</pre>
           <textarea id="sourceInput" spellcheck="false" placeholder='{"hello":"world"}'></textarea>
         </div>
