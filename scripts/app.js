@@ -5,6 +5,7 @@ import {
   stringifyNodeValue
 } from "./json-core.js";
 import { getInitialLanguage, translate } from "./i18n.js";
+import { computeSyncedScrollTop } from "./scroll-sync.js";
 import {
   addDocument,
   createWorkspace,
@@ -46,6 +47,8 @@ const elements = {
   resultTitle: document.querySelector("#resultTitle"),
   treeView: document.querySelector("#treeView"),
   resultMeta: document.querySelector("#resultMeta"),
+  syncScrollCheckbox: document.querySelector("#syncScrollCheckbox"),
+  syncScrollLabel: document.querySelector("#syncScrollLabel"),
   newDocumentButton: document.querySelector("#newDocumentButton"),
   readClipboardButton: document.querySelector("#readClipboardButton"),
   chooseFileButton: document.querySelector("#chooseFileButton"),
@@ -64,6 +67,8 @@ const state = {
   language: getInitialLanguage(localStorage.getItem("jsonLensLanguage"), navigator.language),
   workspace: createWorkspace(),
   sourceVisible: localStorage.getItem("jsonLensSourceVisible") !== "false",
+  syncScroll: localStorage.getItem("jsonLensSyncScroll") === "true",
+  isSyncingScroll: false,
   autoFormatTimer: null
 };
 
@@ -131,6 +136,7 @@ function bindEvents() {
 
   elements.sourceInput.addEventListener("scroll", () => {
     elements.sourceLineNumbers.scrollTop = elements.sourceInput.scrollTop;
+    syncScroll(elements.sourceInput, elements.treeView);
   });
 
   elements.sourceInput.addEventListener("keydown", (event) => {
@@ -151,9 +157,14 @@ function bindEvents() {
   elements.toggleSourceButton.addEventListener("click", toggleSource);
   elements.clearButton.addEventListener("click", clearCurrentDocument);
   elements.clearCacheButton.addEventListener("click", clearCache);
+  elements.syncScrollCheckbox.addEventListener("change", toggleScrollSync);
   elements.collapseAllButton.addEventListener("click", collapseAll);
   elements.expandAllButton.addEventListener("click", expandAll);
   elements.treeView.addEventListener("click", handleTreeClick);
+  elements.treeView.addEventListener("contextmenu", handleTreeContextMenu);
+  elements.treeView.addEventListener("scroll", () => {
+    syncScroll(elements.treeView, elements.sourceInput);
+  });
 }
 
 function addNewDocument() {
@@ -420,6 +431,40 @@ function handleTreeClick(event) {
   }
 }
 
+function handleTreeContextMenu(event) {
+  const row = event.target.closest(".tree-row[data-node-id]");
+  if (!row) return;
+
+  const document = getActiveDocument(state.workspace);
+  const node = indexNodes(document.tree).get(row.dataset.nodeId);
+  if (!node) return;
+
+  event.preventDefault();
+  copyText(stringifyNodeValue(node), t("copiedNode"));
+}
+
+function toggleScrollSync() {
+  state.syncScroll = elements.syncScrollCheckbox.checked;
+  localStorage.setItem("jsonLensSyncScroll", String(state.syncScroll));
+  setStatus(state.syncScroll ? t("scrollSyncEnabled") : t("scrollSyncDisabled"));
+}
+
+function syncScroll(sourceElement, targetElement) {
+  if (!state.syncScroll || state.isSyncingScroll || !state.sourceVisible) return;
+
+  state.isSyncingScroll = true;
+  targetElement.scrollTop = computeSyncedScrollTop({
+    sourceScrollTop: sourceElement.scrollTop,
+    sourceScrollHeight: sourceElement.scrollHeight,
+    sourceClientHeight: sourceElement.clientHeight,
+    targetScrollHeight: targetElement.scrollHeight,
+    targetClientHeight: targetElement.clientHeight
+  });
+  window.setTimeout(() => {
+    state.isSyncingScroll = false;
+  }, 0);
+}
+
 function collapseAll() {
   const document = getActiveDocument(state.workspace);
   if (!document.tree) return;
@@ -523,6 +568,8 @@ function applyLanguage() {
   elements.saveButton.textContent = t("save");
   elements.copyAllButton.textContent = t("copyAll");
   elements.downloadButton.textContent = t("download");
+  elements.syncScrollCheckbox.checked = state.syncScroll;
+  elements.syncScrollLabel.textContent = t("syncScroll");
   elements.clearButton.textContent = t("clear");
   elements.clearCacheButton.textContent = t("clearCache");
   elements.collapseAllButton.textContent = t("collapseAll");

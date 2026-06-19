@@ -25,6 +25,8 @@ JSON Lens is a Chromium extension for validating, formatting, folding, copying, 
 - Keeps the last valid formatted result visible when the current edit is invalid.
 - Supports multiple JSON documents with document tabs.
 - Hides or shows the source editor.
+- Optionally syncs source and result scrolling with a checkbox.
+- Keeps per-row copy controls hidden until hover/focus, and supports right-click copying on result rows.
 - Saves JSON documents to IndexedDB and restores them on the next open.
 - Clears all local JSON cache after an irreversible confirmation.
 - Copies the full formatted document or a specific node/value.
@@ -80,6 +82,8 @@ JSON Lens 是一个 Chromium 浏览器扩展，用于校验、格式化、折叠
 - 当前编辑内容无效时，右侧保留上一次正确格式化结果。
 - 支持多个 JSON 文档，通过 tab 切换。
 - 支持隐藏或显示左侧源代码编辑区。
+- 支持通过勾选框开启左右两侧同步滚动。
+- 右侧逐行复制按钮默认隐藏，悬浮/聚焦时显示，也支持右键复制结果行。
 - 支持把 JSON 文档保存到 IndexedDB，下次打开自动读取。
 - 支持确认后清空所有本地 JSON 缓存，操作不可恢复。
 - 支持复制全部 JSON 或复制某个节点/值。
