@@ -303,6 +303,10 @@ p {
   background: var(--panel);
 }
 
+.pane[hidden] {
+  display: none !important;
+}
+
 .pane-head {
   display: flex;
   align-items: center;
