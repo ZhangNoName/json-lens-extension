@@ -164,6 +164,27 @@ p {
   background: #f8fbfd;
 }
 
+.document-tab-add {
+  display: grid;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  place-items: center;
+  border-color: #c7d4df;
+  border-radius: 6px 6px 0 0;
+  color: var(--accent-strong);
+  background: #f8fbfd;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.document-tab-add:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: #ffffff;
+  background: var(--accent);
+}
+
 .document-tab.active {
   border-color: var(--accent);
   color: var(--accent-strong);
@@ -199,8 +220,6 @@ p {
   white-space: nowrap;
 }
 
-.document-tab-rename,
-.document-tab-commit,
 .document-tab-close {
   display: grid;
   min-width: 24px;
@@ -216,10 +235,6 @@ p {
   line-height: 1;
 }
 
-.document-tab-rename {
-  font-size: 12px;
-}
-
 .document-tab-input {
   min-width: 80px;
   min-height: 28px;
@@ -232,17 +247,8 @@ p {
   font-size: 13px;
 }
 
-.document-tab-rename:hover:not(:disabled) {
-  color: #0b5f59;
-  background: #dcefeb;
-}
-
-.document-tab-commit:hover:not(:disabled) {
-  color: #ffffff;
-  background: var(--accent-strong);
-}
-
-.document-tab-close:hover {
+.document-tab-close:hover:not(:disabled) {
+  border-color: #9a3412;
   color: #fff;
   background: #9a3412;
 }

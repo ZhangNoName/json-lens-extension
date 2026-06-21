@@ -54,7 +54,6 @@ const elements = {
   resultMeta: document.querySelector("#resultMeta"),
   syncScrollCheckbox: document.querySelector("#syncScrollCheckbox"),
   syncScrollLabel: document.querySelector("#syncScrollLabel"),
-  newDocumentButton: document.querySelector("#newDocumentButton"),
   readClipboardButton: document.querySelector("#readClipboardButton"),
   chooseFileButton: document.querySelector("#chooseFileButton"),
   formatButton: document.querySelector("#formatButton"),
@@ -104,6 +103,11 @@ function bindEvents() {
   });
 
   elements.documentTabs.addEventListener("click", (event) => {
+    if (event.target.closest("[data-action='add-document']")) {
+      addNewDocument();
+      return;
+    }
+
     const tab = event.target.closest("[data-document-id]");
     if (!tab) return;
 
@@ -117,16 +121,8 @@ function bindEvents() {
       if (!state.workspace.documents.some((item) => item.id === state.renamingDocumentId)) {
         state.renamingDocumentId = null;
       }
-    } else if (action === "rename") {
-      beginRenamingDocument(documentId);
-      return;
-    } else if (action === "rename-save") {
-      commitRenamedDocument(documentId);
-      return;
-    } else if (action === "rename-cancel") {
-      cancelRenamingDocument();
-      return;
     } else {
+      if (state.workspace.activeId === documentId) return;
       state.workspace = selectDocument(state.workspace, documentId);
     }
 
@@ -182,7 +178,6 @@ function bindEvents() {
     }
   });
 
-  elements.newDocumentButton.addEventListener("click", addNewDocument);
   elements.readClipboardButton.addEventListener("click", readClipboard);
   elements.chooseFileButton.addEventListener("click", () => elements.fileInput.click());
   elements.fileInput.addEventListener("change", readSelectedFile);
@@ -338,6 +333,15 @@ async function checkForUpdatesAfterOpen() {
 function renderTabs() {
   elements.documentTabs.replaceChildren();
 
+  const addButton = window.document.createElement("button");
+  addButton.type = "button";
+  addButton.className = "document-tab-add";
+  addButton.dataset.action = "add-document";
+  addButton.title = t("newTab");
+  addButton.setAttribute("aria-label", t("newTab"));
+  addButton.textContent = "+";
+  elements.documentTabs.append(addButton);
+
   state.workspace.documents.forEach((jsonDocument) => {
     const tab = window.document.createElement("div");
     tab.className = `document-tab${jsonDocument.id === state.workspace.activeId ? " active" : ""}${jsonDocument.isValid === false ? " invalid" : ""}`;
@@ -351,33 +355,12 @@ function renderTabs() {
       input.value = jsonDocument.title;
       input.setAttribute("aria-label", t("renamePrompt"));
 
-      const save = window.document.createElement("button");
-      save.type = "button";
-      save.className = "document-tab-commit";
-      save.dataset.action = "rename-save";
-      save.title = t("saveRename");
-      save.textContent = "OK";
-
-      const cancel = window.document.createElement("button");
-      cancel.type = "button";
-      cancel.className = "document-tab-close";
-      cancel.dataset.action = "rename-cancel";
-      cancel.title = t("cancelRename");
-      cancel.textContent = "x";
-
-      tab.append(input, save, cancel);
+      tab.append(input);
     } else {
       const label = window.document.createElement("button");
       label.type = "button";
       label.className = "document-tab-select document-tab-title";
       label.textContent = jsonDocument.title;
-
-      const rename = window.document.createElement("button");
-      rename.type = "button";
-      rename.className = "document-tab-rename";
-      rename.dataset.action = "rename";
-      rename.title = t("renameDocument");
-      rename.textContent = t("renameShort");
 
       const close = window.document.createElement("button");
       close.type = "button";
@@ -386,7 +369,7 @@ function renderTabs() {
       close.title = t("closeDocument");
       close.textContent = "x";
 
-      tab.append(label, rename, close);
+      tab.append(label, close);
     }
 
     elements.documentTabs.append(tab);
@@ -681,7 +664,6 @@ function applyLanguage() {
   elements.resultTitle.textContent = t("resultTitle");
   elements.languageLabel.textContent = t("languageLabel");
   elements.sourceInput.placeholder = t("placeholder");
-  elements.newDocumentButton.textContent = t("newTab");
   elements.readClipboardButton.textContent = t("readClipboard");
   elements.chooseFileButton.textContent = t("openFile");
   elements.formatButton.textContent = t("format");
