@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "JSON Lens",
   "description": "Validate, format, fold, copy, and download JSON from text, clipboard, or local files.",
-  "version": "0.1.0",
+  "version": "0.1.10",
   "action": {
     "default_title": "Open JSON Lens"
   },
