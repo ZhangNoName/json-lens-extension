@@ -5,6 +5,11 @@ import {
   stringifyNodeValue
 } from "./json-core.js";
 import { getInitialLanguage, translate } from "./i18n.js";
+import {
+  createSourceLineNumbers,
+  getSourceSizeLabel,
+  shouldAutoFormatSource
+} from "./large-file.js";
 import { computeSyncedScrollTop } from "./scroll-sync.js";
 import {
   fetchLatestRelease,
@@ -159,9 +164,17 @@ function bindEvents() {
   });
 
   elements.sourceInput.addEventListener("input", () => {
-    const document = updateDocumentSource(getActiveDocument(state.workspace), elements.sourceInput.value);
+    const source = elements.sourceInput.value;
+    const document = updateDocumentSource(getActiveDocument(state.workspace), source);
     state.workspace = replaceDocument(state.workspace, document);
     updateSourceLineNumbers();
+
+    if (!shouldAutoFormatSource(source)) {
+      window.clearTimeout(state.autoFormatTimer);
+      setStatus(t("largeAutoFormatPaused", { size: getSourceSizeLabel(source) }));
+      return;
+    }
+
     setStatus(t("autoFormatting"));
     scheduleAutoFormat();
   });
@@ -209,8 +222,12 @@ async function readClipboard() {
   try {
     const text = await navigator.clipboard.readText();
     updateActiveSource(text, "clipboard", t("clipboardMeta"));
-    setStatus(t("clipboardLoaded"));
-    formatActiveDocument();
+    if (shouldAutoFormatSource(text)) {
+      setStatus(t("clipboardLoaded"));
+      formatActiveDocument();
+    } else {
+      setStatus(t("largeAutoFormatPaused", { size: getSourceSizeLabel(text) }));
+    }
   } catch {
     showSoftError(t("clipboardUnavailable"));
   }
@@ -229,8 +246,12 @@ function readSelectedFile() {
     );
     state.workspace = replaceDocument(state.workspace, document);
     elements.fileMeta.textContent = t("fileMetaLoaded", { name: file.name, size: formatBytes(file.size) });
-    renderAll(t("fileLoaded"));
-    formatActiveDocument();
+    if (shouldAutoFormatSource(source)) {
+      renderAll(t("fileLoaded"));
+      formatActiveDocument();
+    } else {
+      renderAll(t("largeFileLoaded", { size: formatBytes(file.size) }));
+    }
   };
   reader.onerror = () => showSoftError(t("fileReadFailed"));
   reader.readAsText(file);
@@ -254,9 +275,16 @@ function formatActiveDocument(options = {}) {
   window.clearTimeout(state.autoFormatTimer);
 
   const active = getActiveDocument(state.workspace);
-  const formatted = formatDocument(active);
+  const isLargeSource = !shouldAutoFormatSource(active.source);
+  let formatted = formatDocument(active);
+  if (isLargeSource && formatted.tree) {
+    formatted = {
+      ...formatted,
+      collapsedIds: new Set(collectCollapsibleIds(formatted.tree))
+    };
+  }
   state.workspace = replaceDocument(state.workspace, formatted);
-  renderAll(formatted.isValid === false ? t("formatError") : t("jsonFormatted"));
+  renderAll(formatted.isValid === false ? t("formatError") : t(isLargeSource ? "largeJsonFormatted" : "jsonFormatted"));
 
   if (formatted.isValid === false && options.focusError && formatted.parseError?.position != null) {
     elements.sourceInput.focus();
@@ -653,8 +681,7 @@ function setStatus(message) {
 }
 
 function updateSourceLineNumbers() {
-  const lineCount = Math.max(1, elements.sourceInput.value.split("\n").length);
-  elements.sourceLineNumbers.textContent = Array.from({ length: lineCount }, (_, index) => index + 1).join("\n");
+  elements.sourceLineNumbers.textContent = createSourceLineNumbers(elements.sourceInput.value);
 }
 
 function applyLanguage() {

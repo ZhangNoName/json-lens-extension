@@ -26,6 +26,17 @@ test("translate falls back to English for missing keys", () => {
   assert.equal(translate("en", "missingKey", { fallback: "Fallback" }), "Fallback");
 });
 
+test("translate interpolates message values", () => {
+  assert.equal(
+    translate("en", "largeAutoFormatPaused", { size: "1.2 MB" }),
+    "Large JSON detected (1.2 MB). Auto-format paused; use Format when ready."
+  );
+  assert.equal(
+    translate("zh", "largeAutoFormatPaused", { size: "1.2 MB" }),
+    "检测到大 JSON（1.2 MB），已暂停自动格式化，请需要时点击格式化。"
+  );
+});
+
 test("getMessages returns a copy of localized messages", () => {
   const messages = getMessages("zh");
 
