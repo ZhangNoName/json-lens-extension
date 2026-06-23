@@ -7,27 +7,34 @@
   <a href="#中文">中文</a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/ZhangNoName/json-lens-extension/releases/latest">Latest Release</a>
+  ·
+  <a href="./LICENSE">MIT License</a>
+</p>
+
 <details open>
 <summary id="english"><strong>English</strong></summary>
 
 ## Overview
 
-JSON Lens is a Chromium extension for validating, formatting, folding, copying, saving, and downloading JSON.
+JSON Lens is a Chromium extension for validating, formatting, folding, copying, saving, and downloading JSON. It is designed as a local-first formatter: your JSON stays in the browser unless you explicitly copy, download, or load release metadata from GitHub.
 
 ## Features
 
 - Opens a full-page JSON workspace from the browser extension button.
 - Accepts manual paste, clipboard text, and local `.json` or `.txt` files.
 - Validates JSON and shows line, column, and nearby context for parse errors.
-- Renders a formatted tree with line numbers.
-- Collapses or expands individual nodes, all levels, or the whole tree.
+- Renders formatted JSON as a foldable tree with line numbers.
+- Clicks an entire tree row to expand or collapse it, with `+` / `-` indicators before the row number.
+- Collapses or expands all levels from the result toolbar.
 - Auto-formats while editing with a short debounce.
 - Pauses auto-format for large sources and keeps manual formatting available.
 - Keeps the last valid formatted result visible when the current edit is invalid.
 - Supports multiple JSON documents with document tabs.
 - Creates a new document from the tab bar and renames tabs by double-clicking.
 - Hides or shows the source editor.
-- Optionally syncs source and result scrolling with a checkbox.
+- Optionally syncs source and result scrolling.
 - Keeps per-row copy controls hidden until hover/focus, and supports right-click copying on result rows.
 - Saves JSON documents to IndexedDB and restores them on the next open.
 - Clears all local JSON cache after an irreversible confirmation.
@@ -38,7 +45,7 @@ JSON Lens is a Chromium extension for validating, formatting, folding, copying, 
 
 ## Install Locally
 
-1. Download the release zip from GitHub Releases.
+1. Download the latest zip from [GitHub Releases](https://github.com/ZhangNoName/json-lens-extension/releases/latest).
 2. Extract the zip to a stable local folder.
 3. Open Chrome or Edge.
 4. Go to `chrome://extensions` or `edge://extensions`.
@@ -69,9 +76,17 @@ For very large source text, the source line-number gutter is capped instead of r
 
 The next performance step for tens-of-MB files is moving parse/tree work into a Web Worker and adding progressive tree rendering.
 
+## Privacy
+
+JSON content is processed locally in the extension page. Saved documents are stored in the browser's IndexedDB. The extension only contacts GitHub's public API to check release metadata for updates.
+
 ## Release Pipeline
 
 Pushes to `main` run `.github/workflows/release.yml`. The workflow runs tests, packages the unpacked extension files into `json-lens-extension-<version>.zip`, generates release notes in English and Chinese from git commits, and creates a GitHub Release with the zip attached.
+
+## License
+
+This project is released under the [MIT License](./LICENSE).
 
 </details>
 
@@ -80,22 +95,23 @@ Pushes to `main` run `.github/workflows/release.yml`. The workflow runs tests, p
 
 ## 概览
 
-JSON Lens 是一个 Chromium 浏览器扩展，用来校验、格式化、折叠、复制、保存和下载 JSON。
+JSON Lens 是一个 Chromium 浏览器扩展，用来校验、格式化、折叠、复制、保存和下载 JSON。它采用本地优先的方式处理数据：除非你主动复制、下载，或读取 GitHub Release 元数据检查更新，否则 JSON 内容不会离开浏览器。
 
 ## 功能
 
 - 点击扩展按钮后打开完整的 JSON 工作台页面。
 - 支持手动粘贴、读取剪贴板、选择本地 `.json` 或 `.txt` 文件。
 - JSON 无效时显示错误、行列位置和附近内容。
-- 格式化后以带行号的树形结构展示。
-- 支持单个节点折叠/展开，也支持全部折叠/全部展开。
+- 格式化后以带行号的可折叠树形结构展示。
+- 点击整行即可展开或收起节点，并在行号前显示 `+` / `-` 状态。
+- 支持从结果工具栏全部折叠或全部展开。
 - 编辑时通过短延迟自动格式化。
 - 大文件会暂停自动格式化，但仍然可以手动点击格式化。
 - 当前编辑内容无效时，右侧保留上一次正确格式化结果。
 - 支持多个 JSON 文档，通过 tab 切换。
 - 支持从 tab 栏新建文档，双击 tab 名称即可重命名。
 - 支持隐藏或显示左侧源代码编辑区。
-- 支持通过勾选框开启左右两侧同步滚动。
+- 支持开启左右两侧同步滚动。
 - 右侧逐行复制按钮默认隐藏，悬浮/聚焦时显示，也支持右键复制结果行。
 - 支持把 JSON 文档保存到 IndexedDB，下次打开自动读取。
 - 支持确认后清空所有本地 JSON 缓存，操作不可恢复。
@@ -106,7 +122,7 @@ JSON Lens 是一个 Chromium 浏览器扩展，用来校验、格式化、折叠
 
 ## 本地安装
 
-1. 从 GitHub Releases 下载发布包 zip。
+1. 从 [GitHub Releases](https://github.com/ZhangNoName/json-lens-extension/releases/latest) 下载最新 zip 发布包。
 2. 将 zip 解压到一个固定的本地文件夹。
 3. 打开 Chrome 或 Edge。
 4. 进入 `chrome://extensions` 或 `edge://extensions`。
@@ -137,8 +153,16 @@ JSON Lens 打开时会检查最新的 GitHub Release。如果发布版本高于�
 
 如果后续要处理几十 MB 级别文件，下一步会把解析和树构建移到 Web Worker，并加入渐进式树渲染。
 
+## 隐私
+
+JSON 内容会在扩展页面本地处理。保存的文档存放在浏览器 IndexedDB 中。扩展只会访问 GitHub 的公开 API 来检查版本更新。
+
 ## 发布流水线
 
 每次推送到 `main` 都会运行 `.github/workflows/release.yml`。流水线会运行测试、把扩展文件打包成 `json-lens-extension-<version>.zip`、根据 git 提交生成中英双语发布说明，并创建带 zip 附件的 GitHub Release。
+
+## 许可证
+
+本项目使用 [MIT License](./LICENSE) 发布。
 
 </details>

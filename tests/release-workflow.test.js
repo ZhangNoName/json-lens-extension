@@ -9,3 +9,7 @@ test("release notes are generated in English and Chinese", () => {
   assert.match(workflow, /### English/);
   assert.match(workflow, /### 中文/);
 });
+
+test("release package includes the license file", () => {
+  assert.match(workflow, /manifest\.json, background\.js, app\.html, README\.md, LICENSE/);
+});

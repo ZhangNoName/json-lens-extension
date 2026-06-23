@@ -38,7 +38,7 @@ jobs:
           $changelogPath = "dist/CHANGELOG-$version.md"
 
           New-Item -ItemType Directory -Force -Path $packageRoot | Out-Null
-          Copy-Item -Path manifest.json, background.js, app.html, README.md -Destination $packageRoot
+          Copy-Item -Path manifest.json, background.js, app.html, README.md, LICENSE -Destination $packageRoot
           Copy-Item -Path scripts, styles -Destination $packageRoot -Recurse
 
           $manifestPath = Join-Path $packageRoot "manifest.json"
