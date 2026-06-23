@@ -205,6 +205,7 @@ function bindEvents() {
   elements.collapseAllButton.addEventListener("click", collapseAll);
   elements.expandAllButton.addEventListener("click", expandAll);
   elements.treeView.addEventListener("click", handleTreeClick);
+  elements.treeView.addEventListener("keydown", handleTreeKeydown);
   elements.treeView.addEventListener("contextmenu", handleTreeContextMenu);
   elements.treeView.addEventListener("scroll", () => {
     syncScroll(elements.treeView, elements.sourceInput);
@@ -490,19 +491,22 @@ function renderTree() {
     const rowElement = window.document.createElement("div");
     rowElement.className = `tree-row type-${row.type}`;
     rowElement.dataset.nodeId = row.id;
+    rowElement.dataset.collapsible = String(row.isCollapsible);
+    if (row.isCollapsible) {
+      rowElement.tabIndex = 0;
+      rowElement.setAttribute("role", "button");
+      rowElement.setAttribute("aria-expanded", String(!row.isCollapsed));
+      rowElement.title = row.isCollapsed ? t("expandNode") : t("collapseNode");
+    }
+
+    const rowToggle = window.document.createElement("div");
+    rowToggle.className = "row-toggle";
+    rowToggle.textContent = row.isCollapsible ? (row.isCollapsed ? "+" : "-") : "";
+    rowToggle.setAttribute("aria-hidden", "true");
 
     const line = window.document.createElement("div");
     line.className = "row-line";
     line.textContent = String(row.lineNumber);
-
-    const toggle = window.document.createElement("button");
-    toggle.className = "toggle";
-    toggle.type = "button";
-    toggle.disabled = !row.isCollapsible;
-    toggle.dataset.action = "toggle";
-    toggle.dataset.nodeId = row.id;
-    toggle.textContent = row.isCollapsible ? (row.isCollapsed ? "+" : "-") : "";
-    toggle.title = row.isCollapsed ? t("expandNode") : t("collapseNode");
 
     const key = window.document.createElement("div");
     key.className = "key";
@@ -523,7 +527,7 @@ function renderTree() {
     copy.textContent = t("copy");
     copy.title = t("copyNode");
 
-    rowElement.append(line, toggle, key, value, copy);
+    rowElement.append(rowToggle, line, key, value, copy);
     fragment.append(rowElement);
   });
 
@@ -536,30 +540,44 @@ function renderTree() {
 }
 
 function handleTreeClick(event) {
-  const button = event.target.closest("button[data-action]");
-  if (!button) return;
-
   const document = getActiveDocument(state.workspace);
-  const nodeId = button.dataset.nodeId;
-  const action = button.dataset.action;
+  const button = event.target.closest("button[data-action]");
 
-  if (action === "toggle") {
-    const collapsedIds = new Set(document.collapsedIds);
-    if (collapsedIds.has(nodeId)) {
-      collapsedIds.delete(nodeId);
-    } else {
-      collapsedIds.add(nodeId);
-    }
-    state.workspace = replaceDocument(state.workspace, { ...document, collapsedIds });
-    renderTree();
-  }
-
-  if (action === "copy") {
+  if (button?.dataset.action === "copy") {
+    const nodeId = button.dataset.nodeId;
     const node = indexNodes(document.tree).get(nodeId);
     if (node) {
       copyText(stringifyNodeValue(node), t("copiedNode"));
     }
+    return;
   }
+
+  const row = event.target.closest(".tree-row[data-collapsible='true']");
+  if (!row) return;
+
+  toggleTreeRow(row.dataset.nodeId);
+}
+
+function handleTreeKeydown(event) {
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  const row = event.target.closest(".tree-row[data-collapsible='true']");
+  if (!row) return;
+
+  event.preventDefault();
+  toggleTreeRow(row.dataset.nodeId);
+}
+
+function toggleTreeRow(nodeId) {
+  const document = getActiveDocument(state.workspace);
+  const collapsedIds = new Set(document.collapsedIds);
+  if (collapsedIds.has(nodeId)) {
+    collapsedIds.delete(nodeId);
+  } else {
+    collapsedIds.add(nodeId);
+  }
+  state.workspace = replaceDocument(state.workspace, { ...document, collapsedIds });
+  renderTree();
 }
 
 function handleTreeContextMenu(event) {
