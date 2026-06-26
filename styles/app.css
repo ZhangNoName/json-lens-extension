@@ -401,7 +401,7 @@ textarea {
 
 .tree-row {
   display: grid;
-  grid-template-columns: 24px 52px minmax(80px, auto) minmax(140px, 1fr) 72px;
+  grid-template-columns: 24px 52px minmax(80px, auto) 18px minmax(140px, 1fr) 72px;
   align-items: center;
   min-height: 30px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -449,9 +449,16 @@ textarea {
 .key {
   min-width: 0;
   overflow: hidden;
+  padding-right: 4px;
   color: var(--key);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.separator {
+  color: #7d8da1;
+  text-align: center;
+  user-select: none;
 }
 
 .value {
@@ -528,6 +535,6 @@ textarea {
   }
 
   .tree-row {
-    grid-template-columns: 24px 44px minmax(70px, auto) minmax(120px, 1fr) 64px;
+    grid-template-columns: 24px 44px minmax(70px, auto) 16px minmax(120px, 1fr) 64px;
   }
 }

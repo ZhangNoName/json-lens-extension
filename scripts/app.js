@@ -514,6 +514,10 @@ function renderTree() {
     key.textContent = formatKey(row);
     key.title = key.textContent;
 
+    const separator = window.document.createElement("div");
+    separator.className = "separator";
+    separator.textContent = row.id === "root" ? "" : ":";
+
     const value = window.document.createElement("div");
     value.className = "value";
     value.textContent = row.summary;
@@ -527,7 +531,7 @@ function renderTree() {
     copy.textContent = t("copy");
     copy.title = t("copyNode");
 
-    rowElement.append(rowToggle, line, key, value, copy);
+    rowElement.append(rowToggle, line, key, separator, value, copy);
     fragment.append(rowElement);
   });
 

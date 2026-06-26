@@ -16,3 +16,9 @@ test("tree row layout reserves the first column for the collapse indicator", () 
   assert.match(css, /\.tree-row\s*\{[^}]*grid-template-columns:\s*24px 52px/s);
   assert.match(css, /\.tree-row\[data-collapsible="true"\]\s*\{[^}]*cursor:\s*pointer;/s);
 });
+
+test("tree rows render a colon separator between key and value", () => {
+  assert.match(app, /separator\.className = "separator"/);
+  assert.match(app, /separator\.textContent = row\.id === "root" \? "" : ":"/);
+  assert.match(css, /\.separator\s*\{/);
+});
